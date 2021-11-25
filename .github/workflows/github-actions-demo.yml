@@ -9,11 +9,13 @@ jobs:
     steps:
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@master
-      env:
-        DB:  ${{ secrets.DB }}
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
-        envs: DB
-        script: cd aiohttp_sample_auth && docker stop app ; docker-compose up  --build --force-recreate app
+        script: \
+        export DB=${{ secrets.DB }} && \
+        cd aiohttp_sample_auth && \
+        git pull && \
+        docker stop app ; \
+        docker-compose up  --build --force-recreate app
