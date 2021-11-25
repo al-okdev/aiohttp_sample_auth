@@ -1,4 +1,4 @@
-name: remote ssh command
+name: deploy
 on: [push]
 jobs:
 
@@ -7,10 +7,10 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: deploy
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
-        script: export DB=${{ secrets.DB }} && cd aiohttp_sample_auth && git pull && docker stop app ; docker-compose up  --build --force-recreate app
+        script: export DB=${{ secrets.DB }} && cd aiohttp_sample_auth && git pull && docker stop app ; docker-compose up  --build --force-recreate -d app

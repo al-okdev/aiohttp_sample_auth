@@ -23,7 +23,7 @@ from validators.models import (
 
 
 async def database_context(app: web.Application):
-    async with get_async_session(config.DB) as async_session_maker:
+    async with get_async_session(config.DB, create=True) as async_session_maker:
         app["async_session_maker"] = async_session_maker
         yield
 
