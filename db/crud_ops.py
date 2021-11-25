@@ -1,11 +1,14 @@
 import abc
 from contextlib import asynccontextmanager
 
-from asyncpg.exceptions import UniqueViolationError
+import sqlalchemy
 from sqlalchemy.future import select
 from typing import Iterable, Any
 from sqlalchemy.exc import IntegrityError
-import sqlalchemy.dialects.postgresql.asyncpg
+
+
+import db.models
+
 
 class AlreadyExists(Exception):
     pass
@@ -51,11 +54,15 @@ async def insert_many(orm_objects: Iterable, async_session_maker):
 
 
 async def update(orm_object, patch: dict, async_session_maker):
+
     async with get_session(async_session_maker) as session:
         for key, value in patch.items():
             setattr(orm_object, key, value)
-        await session.commit
-        return orm_object
+        statement = sqlalchemy.update(orm_object.orm_class).values(**patch)
+        statement.execution_options(synchronize_session="fetch")
+        await session.execute(statement)
+        await session.commit()
+    return orm_object
 
 
 class BaseCrudModel(abc.ABC):
@@ -83,19 +90,31 @@ class BaseCrudModel(abc.ABC):
 
     @classmethod
     async def get_by_field(cls, field: str, value: Any, async_session_maker):
-        return [cls(obj) for obj in await get_by_field(cls.orm_class, field, value, async_session_maker)]
+        return [
+            cls(obj)
+            for obj in await get_by_field(
+                cls.orm_class, field, value, async_session_maker
+            )
+        ]
+
+    async def patch(self, patch_data: dict, async_session_maker):
+        return await update(self, patch_data, async_session_maker)
 
     def __getattr__(self, attr: str):
         return getattr(self.orm_object, attr)
 
     def __setattr__(self, key: str, value: Any):
-        if key == 'orm_object':
+        if key == "orm_object":
             return super().__setattr__(key, value)
         else:
             setattr(self.orm_object, key, value)
 
     @property
     def dict(self):
-        return {key: value for key, value in self.orm_object.__dict__.items() if not callable(value)
-                and not key.startswith('_') and key not in self.exclude_fields}
-
+        return {
+            key: value
+            for key, value in self.orm_object.__dict__.items()
+            if not callable(value)
+            and not key.startswith("_")
+            and key not in self.exclude_fields
+        }

@@ -7,10 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 
 @asynccontextmanager
-async def get_async_session(dsn: str, drop: bool = False, create: bool = False) -> ContextManager[AsyncSession]:
-    engine = create_async_engine(
-        dsn
-    )
+async def get_async_session(
+    dsn: str, drop: bool = False, create: bool = False
+) -> ContextManager[AsyncSession]:
+    engine = create_async_engine(dsn)
     async with engine.begin() as conn:
         if drop:
             await conn.run_sync(Base.metadata.drop_all)

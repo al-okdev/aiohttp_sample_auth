@@ -1,0 +1,18 @@
+FROM python:3.9.9-alpine3.14
+
+ARG DB
+ARG APP_URL
+
+ENV DB=$DB
+ENV APP_URL=$APP_URL
+
+WORKDIR /code
+
+COPY . /code
+
+RUN apk add --no-cache --virtual .build-deps g++  gcc make libc-dev  libffi-dev libevent-dev musl-dev  \
+    openssl-dev \
+    && pip install --no-cache-dir -r /code/requirements-dev.txt \
+    && apk del .build-deps g++  gcc make libc-dev  libffi-dev libevent-dev musl-dev  openssl-dev
+
+ENTRYPOINT pytest -v -s tests --url $APP_URL

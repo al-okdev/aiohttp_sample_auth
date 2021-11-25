@@ -1,7 +1,9 @@
-version: '3.1'
+version: "3.1"
+
+networks:
+  net1:
 
 services:
-
   db:
     image: postgres:14.1
     environment:
@@ -9,4 +11,45 @@ services:
       POSTGRES_USER: app
       POSTGRES_DB: app
     ports:
-      - "5432:5432"
+      - "5430:5432"
+    networks:
+      net1:
+        aliases:
+          - database
+
+  app:
+    build:
+      context: .
+      args:
+        DB: ${DB}
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: users_api
+
+    depends_on:
+      - db
+    networks:
+      net1:
+        aliases:
+          - app
+    volumes:
+    - ./:/code
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+      args:
+        APP_URL: http://app:8080
+        DB: ${DB}
+    depends_on:
+      - db
+      - app
+
+    networks:
+      net1:
+        aliases:
+          - test_client
+    volumes:
+      - ./:/code

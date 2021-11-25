@@ -15,10 +15,10 @@ class UserCreate(pydantic.BaseModel):
     password: str
     group_id: int
 
-    @pydantic.validator('password')
+    @pydantic.validator("password")
     def password_strong(value: str):
         if not STRONG_PASSWORD.match(value):
-            raise ValueError('password is to easy')
+            raise ValueError("password is to easy")
         return value
 
 
@@ -30,7 +30,7 @@ class Login(pydantic.BaseModel):
 class ObjectId(pydantic.BaseModel):
     id: str
 
-    @pydantic.validator('id')
+    @pydantic.validator("id")
     def id_validator(value: str):
         if CORRECT_ID.match(value):
             return int(value)
@@ -55,8 +55,10 @@ class PostUpdate(pydantic.BaseModel):
     def any(cls, values):
         values = {key: value for key, value in values.items() if value is not None}
         if not values:
-            raise ValueError('At least one field must be defined')
+            raise ValueError("At least one field must be defined")
         return values
 
 
-VALIDATOR = typing.Union[UserCreate, Login, ObjectId, RightCreate]
+VALIDATOR = typing.Union[
+    UserCreate, Login, ObjectId, RightCreate, PostCreate, PostUpdate
+]
