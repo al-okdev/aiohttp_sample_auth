@@ -13,9 +13,4 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
-        script: |
-        export DB=${{ secrets.DB }} && \
-        cd aiohttp_sample_auth && \
-        git pull && \
-        docker stop app ; \
-        docker-compose up  --build --force-recreate app
+        script: export DB=${{ secrets.DB }} && cd aiohttp_sample_auth && git pull && docker stop app ; docker-compose up  --build --force-recreate app
